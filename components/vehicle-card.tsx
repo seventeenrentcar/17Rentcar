@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
-import { Star, Users, Fuel, Settings, Eye } from "lucide-react"
+import { Star, Eye } from "lucide-react"
 import type { Vehicle } from "@/lib/types"
 import { motion } from "framer-motion"
 
@@ -46,22 +46,6 @@ export function VehicleCard({ vehicle, onViewDetails }: VehicleCardProps) {
               {vehicle.name}
             </h3>
             <p className="text-gray-600 font-medium text-sm sm:text-base">{vehicle.brand}</p>
-          </div>
-
-          {/* Vehicle Specs */}
-          <div className="flex items-center justify-between mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600">
-            <div className="flex items-center">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span>7 Kursi</span>
-            </div>
-            <div className="flex items-center">
-              <Fuel className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span>Bensin</span>
-            </div>
-            <div className="flex items-center">
-              <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span>Manual</span>
-            </div>
           </div>
 
           {/* Features */}

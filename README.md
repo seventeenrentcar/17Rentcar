@@ -424,18 +424,28 @@ pnpm dev
 
 ### **👨‍💼 Setup Administrator Pertama**
 
-#### **1. Akses Setup Admin**
-- Buka browser dan navigasi ke `http://localhost:3000/admin/setup`
-- Halaman ini hanya dapat diakses sekali untuk setup admin pertama
+#### **1. Buat User di Supabase Auth**
+- Buka Supabase Dashboard → Authentication → Users
+- Klik "Add user" dan buat user dengan email/password
+- Catat User ID yang digenerate otomatis
 
-#### **2. Buat Akun Admin**
-- Masukkan email dan password untuk admin pertama
-- Klik "Buat Admin" untuk membuat akun
-- System akan otomatis membuat user di Supabase Auth
+#### **2. Buat Admin Profile**
+- Buka Supabase SQL Editor
+- Jalankan query berikut (ganti 'USER_ID_DISINI' dengan User ID dari step 1):
+```sql
+INSERT INTO admin_profiles (id, email, full_name, role, is_active) 
+VALUES (
+  'USER_ID_DISINI'::uuid,     -- Ganti dengan User ID dari auth.users
+  'admin@17rentcar.com',      -- Ganti dengan email admin
+  'Admin User',               -- Ganti dengan nama admin
+  'super_admin',              -- Role: 'admin' atau 'super_admin'
+  true
+);
+```
 
 #### **3. Login Admin**
-- Setelah setup, navigasi ke `http://localhost:3000/admin/login`
-- Login menggunakan kredensial yang telah dibuat
+- Navigasi ke `http://localhost:3000/admin/login`
+- Login menggunakan kredensial yang telah dibuat di step 1
 - Dashboard admin akan terbuka setelah login berhasil
 
 ### **� Konfigurasi Tambahan**
@@ -713,8 +723,7 @@ pnpm test:coverage        # Generate coverage report
 │   │   ├── 📁 settings/            # System settings
 │   │   └── 📁 audit/               # Audit logs
 │   ├── 📁 api/                     # API routes
-│   │   ├── 📁 admin/               # Admin API endpoints
-│   │   └── 📁 setup-admin/         # Admin setup API
+│   │   └── 📁 admin/               # Admin API endpoints
 │   ├── 📁 catalog/                 # Vehicle catalog page
 │   ├── 📁 about/                   # About page
 │   ├── 📁 contact/                 # Contact page

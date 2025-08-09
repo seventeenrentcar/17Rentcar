@@ -18,26 +18,28 @@ export function AdminGuard({ children, requiredPermission, requiredRole }: Admin
   const router = useRouter()
 
   useEffect(() => {
-    // Only redirect if we're sure loading is complete
+    // Only redirect if we're sure loading is complete and have had enough time
     if (loading) return
 
-    if (!isAuthenticated || !admin) {
-      console.log("AdminGuard: User not authenticated, redirecting to login")
-      // Don't redirect immediately, let the component show login
-      return
-    }
+    // Add a small delay to prevent premature redirects during tab switches
+    const redirectTimer = setTimeout(() => {
+      if (!isAuthenticated || !admin) {
+        // Don't redirect immediately, let the component show login
+        return
+      }
 
-    if (admin && requiredRole && !hasRole(requiredRole)) {
-      console.log("AdminGuard: User lacks required role:", requiredRole)
-      router.push("/admin/unauthorized")
-      return
-    }
+      if (admin && requiredRole && !hasRole(requiredRole)) {
+        router.push("/admin/unauthorized")
+        return
+      }
 
-    if (admin && requiredPermission && !checkPermission(requiredPermission)) {
-      console.log("AdminGuard: User lacks required permission:", requiredPermission)
-      router.push("/admin/unauthorized")
-      return
-    }
+      if (admin && requiredPermission && !checkPermission(requiredPermission)) {
+        router.push("/admin/unauthorized")
+        return
+      }
+    }, 500) // Small delay to prevent premature redirects
+
+    return () => clearTimeout(redirectTimer)
   }, [admin, loading, requiredPermission, requiredRole, checkPermission, hasRole, router, isAuthenticated])
 
   if (loading) {

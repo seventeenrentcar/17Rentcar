@@ -7,8 +7,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false, // Prevent issues with URL fragments
+    detectSessionInUrl: true, // Enable URL detection for password reset
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    // Use implicit flow for simpler password reset
+    flowType: 'implicit',
+  },
+  // Add retry logic for better resilience during tab switches
+  global: {
+    headers: {
+      'x-client-info': '17rentcar-web'
+    }
   }
 })
 
@@ -36,6 +44,12 @@ export const createAdminClient = () => {
       autoRefreshToken: true,
       detectSessionInUrl: false,
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      flowType: 'pkce',
+    },
+    global: {
+      headers: {
+        'x-client-info': '17rentcar-admin'
+      }
     }
   })
 }

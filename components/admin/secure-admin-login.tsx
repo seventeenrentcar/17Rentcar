@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { useAdminAuth } from "@/hooks/use-admin-auth"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Shield, Mail, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react"
+import { Shield, Mail, Lock, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
 export function SecureAdminLogin() {
@@ -20,8 +20,19 @@ export function SecureAdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const { login, isAuthenticated, loading } = useAdminAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // Check for success messages from URL
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message === 'password-reset-success') {
+      setSuccessMessage('Password berhasil diubah! Silakan login dengan password baru.')
+    }
+  }, [searchParams])
+  
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -29,22 +40,45 @@ export function SecureAdminLogin() {
     }
   }, [isAuthenticated, loading, router])
 
+  const mapError = (msg?: string) => {
+    if (!msg) return "Email atau password salah."
+    const m = msg.toLowerCase()
+    if (m.includes("invalid login") || m.includes("invalid email") || m.includes("invalid credentials")) {
+      return "Email atau password salah."
+    }
+    if (m.includes("email not confirmed") || m.includes("confirm your email")) {
+      return "Email belum terverifikasi. Silakan cek kotak masuk untuk verifikasi."
+    }
+    if (m.includes("too many requests") || m.includes("rate limit")) {
+      return "Terlalu banyak percobaan. Coba lagi beberapa menit."
+    }
+    if (m.includes("access denied") || m.includes("admin privileges")) {
+      return "Akses ditolak: Akun ini tidak memiliki hak admin."
+    }
+    return msg
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    // Basic client-side validation
+    if (!email || !password) {
+      setError("Silakan isi email dan password.")
+      return
+    }
+
     setIsLoading(true)
 
     try {
       const result = await login(email, password)
-      
       if (!result.success) {
-        setError(result.error || "Login gagal. Silakan coba lagi.")
+        setError(mapError(result.error))
       } else {
-        // Redirect to dashboard on successful login
         router.push("/admin/dashboard")
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login gagal. Silakan coba lagi.")
+    } catch (err: any) {
+      setError(mapError(err?.message))
     } finally {
       setIsLoading(false)
     }
@@ -86,6 +120,19 @@ export function SecureAdminLogin() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+              
               {error && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -115,6 +162,7 @@ export function SecureAdminLogin() {
                       className="pl-10 h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
                       required
                       disabled={isLoading}
+                      aria-invalid={!!error}
                     />
                   </div>
                 </div>
@@ -134,12 +182,14 @@ export function SecureAdminLogin() {
                       className="pl-10 pr-10 h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
                       required
                       disabled={isLoading}
+                      aria-invalid={!!error}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       disabled={isLoading}
+                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -161,6 +211,16 @@ export function SecureAdminLogin() {
                   "Masuk Admin"
                 )}
               </Button>
+
+              {/* Forgot Password Link */}
+              <div className="text-center">
+                <Link 
+                  href="/forgot-password" 
+                  className="text-sm text-red-600 hover:text-red-700 transition-colors font-medium"
+                >
+                  Lupa Password?
+                </Link>
+              </div>
             </form>
           </CardContent>
         </Card>
