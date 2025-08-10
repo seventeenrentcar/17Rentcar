@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     "17rentcar",
   ],
   creator: "17rentcar",
+  icons: {
+    icon: "/Logo17.png",
+    shortcut: "/Logo17.png",
+    apple: "/Logo17.png",
+  },
 }
 
 export const viewport: Viewport = {
@@ -39,7 +44,8 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
-}) {  return (
+}) {
+  return (
     <html lang="id" suppressHydrationWarning>
       <head />
       <body className={`${inter.className} min-h-screen antialiased overflow-x-hidden`}>
