@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   authors: [{ name: "17rentcar" }],
   keywords: [
     "sewa mobil",
+    "rental mobil bandung",
+    "sewa mobil bandung",
     "rental mobil",
     "bandung",
     "transportasi",
