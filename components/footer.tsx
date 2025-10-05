@@ -12,7 +12,7 @@ export function Footer() {
     const message = encodeURIComponent("Halo, saya ingin bertanya tentang layanan sewa mobil 17rentcar")
     const phoneNumber = contactInfo?.whatsapp ? 
       `62${contactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank")
   }
 
@@ -172,7 +172,7 @@ export function Footer() {
                     <Phone className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-gray-300 text-sm">
-                        {contactInfo?.phone ? formatPhoneNumber(contactInfo.phone) : "+62 878-1709-0619"}
+                        {contactInfo?.phone ? formatPhoneNumber(contactInfo.phone) : "+62 895-0479-6894"}
                       </p>
                       <p className="text-gray-400 text-xs">Telepon & WhatsApp</p>
                     </div>
