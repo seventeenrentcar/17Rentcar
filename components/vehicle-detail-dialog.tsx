@@ -87,7 +87,7 @@ export function VehicleDetailDialog({ vehicle, open, onOpenChange }: VehicleDeta
     // Use dynamic phone number from database
     const phoneNumber = contactInfo?.whatsapp ? 
       `62${contactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     const whatsappUrl = getWhatsAppUrl(message, phoneNumber)
 
     window.open(whatsappUrl, "_blank")
