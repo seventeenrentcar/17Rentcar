@@ -27,7 +27,7 @@ export function Header() {
     const message = encodeURIComponent("Halo, saya ingin bertanya tentang layanan sewa mobil 17rentcar")
     const phoneNumber = contactInfo?.whatsapp ? 
       `62${contactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     if (typeof window !== "undefined") {
       window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank")
     }
