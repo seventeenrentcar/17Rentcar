@@ -172,9 +172,9 @@ CREATE POLICY "Audit trail viewable by admins" ON audit_trail
 INSERT INTO system_settings (setting_key, setting_value, description, category, is_public) VALUES
 ('site_name', '"17rentcar"', 'Website name', 'general', true),
 ('site_description', '"Layanan sewa mobil terpercaya di Bandung"', 'Website description', 'general', true),
-('contact_phone', '"+62 878-1709-0619"', 'Contact phone number', 'contact', true),
+('contact_phone', '"+62 895-0479-6894"', 'Contact phone number', 'contact', true),
 ('contact_email', '"innomardia@gmail.com"', 'Contact email address', 'contact', true),
-('whatsapp_number', '"6287817090619"', 'WhatsApp number for bookings', 'contact', true),
+('whatsapp_number', '"6289504796894"', 'WhatsApp number for bookings', 'contact', true),
 ('booking_enabled', 'true', 'Enable/disable booking system', 'booking', false),
 ('maintenance_mode', 'false', 'Enable/disable maintenance mode', 'system', false),
 ('max_booking_days', '30', 'Maximum days in advance for booking', 'booking', false)
