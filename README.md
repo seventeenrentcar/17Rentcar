@@ -898,8 +898,8 @@ trackEvent('whatsapp_contact_clicked', { source: 'vehicle_detail' })
 ## � Kontak dan Support
 
 ### **📧 Informasi Kontak**
-- **WhatsApp Business**: [+62 878-1709-0619](https://wa.me/6287817090619)
-- **Email Resmi**: [innomardia@gmail.com](mailto:innomardia@gmail.com)
+- **WhatsApp Business**: [+62 895-0479-6894](https://wa.me/6289504796894)
+- **Email Resmi**: [17rentcarr@gmail.com](mailto:17rentcarr@gmail.com)
 - **Website Live**: [17rentcar.vercel.app](https://17rentcar.vercel.app)
 
 ### **🆘 Technical Support**
