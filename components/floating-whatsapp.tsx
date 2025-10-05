@@ -27,7 +27,7 @@ export function FloatingWhatsApp() {
     // Use dynamic WhatsApp number from contact info, fallback to default
     const phoneNumber = contactInfo?.whatsapp ? 
       `62${contactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
     window.open(whatsappUrl, "_blank")
   }
