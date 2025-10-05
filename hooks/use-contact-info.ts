@@ -58,18 +58,18 @@ export function useContactInfo() {
       }
 
       setContactInfo(data || {
-        phone: '087817090619',
+        phone: '089504796894',
         email: 'innomardia@gmail.com',
-        whatsapp: '087817090619'
+        whatsapp: '089504796894'
       })
     } catch (err) {
       console.error('Error fetching contact info:', err)
       setError('Failed to load contact information')
       // Set default values on error
       setContactInfo({
-        phone: '087817090619',
+        phone: '089504796894',
         email: 'innomardia@gmail.com',
-        whatsapp: '087817090619'
+        whatsapp: '089504796894'
       })
     } finally {
       setLoading(false)
