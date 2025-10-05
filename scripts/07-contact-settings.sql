@@ -26,7 +26,7 @@ CREATE POLICY "Admin can manage contact settings" ON contact_settings
 
 -- Insert default contact information (optional)
 INSERT INTO contact_settings (phone, email, whatsapp) 
-VALUES ('087817090619', 'innomardia@gmail.com', '087817090619')
+VALUES ('089504796894', 'innomardia@gmail.com', '089504796894')
 ON CONFLICT (id) DO NOTHING;
 
 -- Create function to automatically update updated_at timestamp
