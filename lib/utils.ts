@@ -39,6 +39,6 @@ Terima kasih!`
   return encodeURIComponent(message)
 }
 
-export function getWhatsAppUrl(message: string, phoneNumber = "6287817090619"): string {
+export function getWhatsAppUrl(message: string, phoneNumber = "6289504796894"): string {
   return `https://wa.me/${phoneNumber}?text=${message}`
 }
