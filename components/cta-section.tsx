@@ -16,7 +16,7 @@ export function CTASection() {
     const message = encodeURIComponent("Halo, saya ingin memesan mobil rental dari 17rentcar")
     const phoneNumber = contactInfo?.whatsapp ? 
       `62${contactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank")
   }
 
