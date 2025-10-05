@@ -25,14 +25,14 @@ export function ContactSection() {
     {
       icon: Phone,
       title: "Telepon",
-      content: dbContactInfo?.phone ? formatPhoneNumber(dbContactInfo.phone) : "+62 878-1709-0619",
+      content: dbContactInfo?.phone ? formatPhoneNumber(dbContactInfo.phone) : "+62 895-0479-6894",
       description: "Hubungi kami untuk informasi dan pemesanan",
       color: "from-green-500 to-green-600",
     },
     {
       icon: Mail,
       title: "Email",
-      content: dbContactInfo?.email || "innomardia@gmail.com",
+      content: dbContactInfo?.email || "17rentcarr@gmail.com",
       description: "Kirim pertanyaan atau saran melalui email",
       color: "from-purple-500 to-purple-600",
     },
@@ -49,14 +49,14 @@ export function ContactSection() {
     const message = encodeURIComponent("Halo, saya ingin bertanya tentang layanan sewa mobil 17rentcar")
     const phoneNumber = dbContactInfo?.whatsapp ? 
       `62${dbContactInfo.whatsapp.replace(/^0/, '')}` : // Convert 08xxx to 628xxx
-      "6287817090619"
+      "6289504796894"
     if (typeof window !== "undefined") {
       window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank")
     }
   }
 
   const handleEmailContact = () => {
-    const email = dbContactInfo?.email || "innomardia@gmail.com"
+    const email = dbContactInfo?.email || "17rentcarr@gmail.com"
     if (typeof window !== "undefined") {
       window.open(`mailto:${email}?subject=Pertanyaan tentang Sewa Mobil`, "_blank")
     }
@@ -65,7 +65,7 @@ export function ContactSection() {
   const handlePhoneContact = () => {
     const phone = dbContactInfo?.phone ? 
       `+62${dbContactInfo.phone.substring(1)}` : // Convert 08xxx to +628xxx for tel: link
-      "+6287817090619"
+      "+6289504796894"
     if (typeof window !== "undefined") {
       window.open(`tel:${phone}`, "_blank")
     }
