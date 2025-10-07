@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase"
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react"
 
 export const dynamic = "force-dynamic"; 
+export const fetchCache = "force-no-store";
+
 export default function AuthCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
