@@ -1,8 +1,15 @@
-"use client"
+"use client";
 
-import { SecureAdminLogin } from "@/components/admin/secure-admin-login"
-export const dynamic = "force-dynamic"; 
+import { Suspense } from "react";
+import { SecureAdminLogin } from "@/components/admin/secure-admin-login";
+
+export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+
 export default function AdminLoginPage() {
-  return <SecureAdminLogin />
+  return (
+    <Suspense fallback={<div>Loading admin login...</div>}>
+      <SecureAdminLogin />
+    </Suspense>
+  );
 }
