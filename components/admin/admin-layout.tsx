@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useAdminAuth } from "@/hooks/use-admin-auth"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -37,6 +38,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { admin, logout, hasRole, checkPermission } = useAdminAuth()
+  const router = useRouter()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -54,7 +56,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [])
 
   const handleSignOut = async () => {
-    await logout()
+    try {
+      // Immediately set logout flag and redirect
+      localStorage.setItem('admin_logout_in_progress', 'true')
+      
+      // Use router.replace for immediate navigation without page reload
+      router.replace('/admin/login')
+      
+      // Call logout after navigation starts
+      await logout()
+    } catch (error) {
+      // Ensure redirect even if logout fails
+      router.replace('/admin/login')
+    }
   }
   const navigation = [
     {
@@ -78,11 +92,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       current: pathname === "/admin/contact",
       permission: "content.read",
     },
+    {
+      name: "Kelola Akun",
+      href: "/admin/account",
+      icon: Settings,
+      current: pathname === "/admin/account",
+      permission: "admin", // All admins should be able to manage their own account
+    },
   ]
 
   const visibleNavigation = navigation.filter((item) => {
-    // Dashboard should always be visible for any logged-in admin
-    if (item.name === "Dashboard") return true
+    // Dashboard and Account Management should always be visible for any logged-in admin
+    if (item.name === "Dashboard" || item.name === "Kelola Akun") return true
     return checkPermission(item.permission)
   })
 

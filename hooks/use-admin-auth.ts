@@ -34,10 +34,39 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [admin, setAdmin] = useState<AdminProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sessionChecked, setSessionChecked] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [lastFetchedUserId, setLastFetchedUserId] = useState<string | null>(null)
+  const [fetchRetryCount, setFetchRetryCount] = useState(0)
+  const [currentFetchController, setCurrentFetchController] = useState<AbortController | null>(null)
+
+  // Handle page visibility changes to prevent session issues during tab switching
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = !document.hidden
+      
+      // Simple approach: just track visibility, don't trigger auth operations
+      // Let Supabase handle its own visibility logic
+    }
+
+    const handleFocusChange = () => {
+      // Window focus tracking for tab visibility
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocusChange)
+    window.addEventListener('blur', handleFocusChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocusChange)
+      window.removeEventListener('blur', handleFocusChange)
+    }
+  }, [])
 
   useEffect(() => {
     let mounted = true
     let timeoutId: NodeJS.Timeout
+    let authEventTimeout: NodeJS.Timeout
     
     // Set a longer timeout for session check
     const timeout = setTimeout(() => {
@@ -52,13 +81,22 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     
     async function checkSession() {
       try {
-        console.log("Starting session check...")
+        // Check if logout is in progress
+        if (localStorage.getItem('admin_logout_in_progress')) {
+          if (mounted) {
+            setAdmin(null)
+            setLastFetchedUserId(null)
+            setIsInitialized(true)
+            setLoading(false)
+            setSessionChecked(true)
+          }
+          return
+        }
         
         // First, try to get the current session
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         
         if (sessionError) {
-          console.error("Session error:", sessionError)
           if (mounted) {
             setAdmin(null)
             setLoading(false)
@@ -68,18 +106,21 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (sessionData.session?.user && mounted) {
-          console.log("Session found, fetching admin profile...")
+          setLastFetchedUserId(sessionData.session.user.id)
           await fetchAdminProfile(sessionData.session.user.id)
+          // Note: fetchAdminProfile now handles setting isInitialized
         } else {
-          console.log("No session found")
           if (mounted) {
             setAdmin(null)
+            setLastFetchedUserId(null)
+            setIsInitialized(true) // Mark as initialized even when no session
           }
         }
       } catch (error) {
-        console.error("Session check error:", error)
         if (mounted) {
           setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(true) // Mark as initialized even on error
         }
       } finally {
         if (mounted) {
@@ -92,86 +133,196 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
     checkSession()
 
-    // Listen for auth state changes with improved handling
+    // Listen for auth state changes with debounced handling
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change:", event, session?.user?.email)
-      
       if (!mounted) return
       
-      // Handle different auth events
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User signed in, fetching admin profile...")
-        await fetchAdminProfile(session.user.id)
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out")
-        setAdmin(null)
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        console.log("Token refreshed, verifying admin profile...")
-        // Re-verify admin profile after token refresh
-        await fetchAdminProfile(session.user.id)
-      } else if (session?.user) {
-        // Handle other events where we have a session
-        await fetchAdminProfile(session.user.id)
-      } else {
-        // No session, clear admin
-        setAdmin(null)
+      // Check if logout is in progress and skip processing
+      if (localStorage.getItem('admin_logout_in_progress')) {
+        return
       }
       
-      // Ensure loading is false after auth state changes
-      if (sessionChecked) {
-        setLoading(false)
+      // Clear any pending auth event processing
+      if (authEventTimeout) {
+        clearTimeout(authEventTimeout)
       }
+      
+      // Debounce auth events to prevent rapid-fire processing
+      authEventTimeout = setTimeout(async () => {
+        // Double-check logout flag after timeout
+        if (localStorage.getItem('admin_logout_in_progress')) {
+          return
+        }
+        
+        // Prevent duplicate processing of the same user
+        const currentUserId = session?.user?.id
+        if (currentUserId && currentUserId === lastFetchedUserId && admin && event !== 'SIGNED_OUT') {
+          return
+        }
+        
+        // Handle different auth events
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Only process SIGNED_IN if we don't already have this user's admin profile
+          if (!admin || admin.id !== session.user.id) {
+            setLastFetchedUserId(session.user.id)
+            await fetchAdminProfile(session.user.id)
+          } else {
+            setIsInitialized(true)
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(false)
+          setFetchRetryCount(0)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          // Only re-verify admin profile if we don't already have admin data or it's a different user
+          if (!admin || session.user.id !== lastFetchedUserId) {
+            setLastFetchedUserId(session.user.id)
+            await fetchAdminProfile(session.user.id)
+          } else {
+            setIsInitialized(true)
+          }
+        } else if (session?.user && event === 'INITIAL_SESSION' && !isInitialized) {
+          // Handle initial session load only once
+          setLastFetchedUserId(session.user.id)
+          await fetchAdminProfile(session.user.id)
+        } else if (!session && event !== 'INITIAL_SESSION' && event !== 'TOKEN_REFRESHED') {
+          // No session, clear admin only if we're sure the session is gone
+          setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(true)
+          setFetchRetryCount(0)
+        }
+        
+        // Ensure loading is false after auth state changes
+        if (sessionChecked) {
+          setLoading(false)
+        }
+      }, 300) // 300ms debounce for auth events
     })
 
     return () => {
       mounted = false
       clearTimeout(timeoutId)
+      if (authEventTimeout) {
+        clearTimeout(authEventTimeout)
+      }
+      // Cancel any ongoing fetch when component unmounts
+      if (currentFetchController) {
+        currentFetchController.abort()
+      }
       subscription.unsubscribe()
     }
-  }, [])
+  }, []) // Removed dependencies to prevent recreation of auth listeners
 
   const fetchAdminProfile = async (userId: string) => {
     try {
-      console.log("Fetching admin profile for user:", userId)
+      // Cancel any ongoing fetch request
+      if (currentFetchController) {
+        currentFetchController.abort()
+      }
       
-      // Add a timeout for the database query
-      const fetchPromise = supabase
-        .from("admin_profiles")
-        .select("*")
-        .eq("id", userId)
-        .eq("is_active", true)
-        .single()
+      // Skip if we're already fetching for the same user and have admin data
+      if (admin && admin.id === userId) {
+        setIsInitialized(true)
+        return
+      }
+      
+      // Prevent infinite retries
+      if (fetchRetryCount >= 2) {
+        setAdmin(null)
+        setLastFetchedUserId(null)
+        setIsInitialized(true)
+        setFetchRetryCount(0)
+        return
+      }
+      
+      // Create new AbortController for this request
+      const controller = new AbortController()
+      setCurrentFetchController(controller)
+      
+      // Use shorter timeout (3 seconds) with immediate fallback
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+      }, 3000) // Reduced to 3 seconds for faster response
+      
+      try {
+        const { data, error } = await supabase
+          .from("admin_profiles")
+          .select("*")
+          .eq("id", userId)
+          .eq("is_active", true)
+          .abortSignal(controller.signal)
+          .single()
 
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Admin profile fetch timeout")), 10000)
-      )
+        clearTimeout(timeoutId)
+        setCurrentFetchController(null)
 
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any
-
-      if (error) {
-        console.error("Error fetching admin profile:", error)
-        if (error.code === 'PGRST116') {
-          console.log("Admin profile not found - user is not an admin")
-        } else if (error.message?.includes('timeout')) {
-          console.error("Admin profile fetch timed out")
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // User exists in auth but not in admin_profiles - sign them out
+            await supabase.auth.signOut()
+          }
+          setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(true)
+          setFetchRetryCount(0)
+          return
         }
-        setAdmin(null)
-        return
-      }
 
-      if (!data) {
-        console.log("No admin profile data returned")
-        setAdmin(null)
-        return
-      }
+        if (!data) {
+          console.log("No admin profile data returned")
+          setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(true)
+          setFetchRetryCount(0)
+          return
+        }
 
-      console.log("Admin profile loaded:", data.email)
-      setAdmin(data)
+        setAdmin(data)
+        setLastFetchedUserId(userId)
+        setIsInitialized(true)
+        setFetchRetryCount(0)
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        setCurrentFetchController(null)
+        
+        if (fetchError?.name === 'AbortError') {
+          // Don't retry on abort - it was intentional
+          if (fetchError.message?.includes('timeout')) {
+            const newRetryCount = fetchRetryCount + 1
+            setFetchRetryCount(newRetryCount)
+            
+            if (newRetryCount < 2) {
+              // Retry after a very short delay
+              setTimeout(() => {
+                fetchAdminProfile(userId)
+              }, 500)
+            } else {
+              setIsInitialized(true)
+              setFetchRetryCount(0)
+              supabase.auth.signOut()
+            }
+          } else {
+            // Regular abort (not timeout), just mark as initialized
+            setIsInitialized(true)
+          }
+        } else {
+          setAdmin(null)
+          setLastFetchedUserId(null)
+          setIsInitialized(true)
+          setFetchRetryCount(0)
+        }
+      }
     } catch (error) {
       console.error("Error fetching admin profile:", error)
       setAdmin(null)
+      setLastFetchedUserId(null)
+      setIsInitialized(true)
+      setFetchRetryCount(0)
+      setCurrentFetchController(null)
     }
   }
 
@@ -201,6 +352,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setAdmin(adminData)
+      setLastFetchedUserId(data.user.id)
       return { success: true }
     } catch (error) {
       return { success: false, error: "An unknown error occurred" }
@@ -211,10 +363,53 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut()
+      // Set a flag to prevent any auth state processing during logout
+      const logoutFlag = 'admin_logout_in_progress'
+      localStorage.setItem(logoutFlag, 'true')
+      
+      // Clear local state first
       setAdmin(null)
+      setLastFetchedUserId(null)
+      setIsInitialized(false)
+      setFetchRetryCount(0)
+      
+      // Clear all Supabase storage
+      localStorage.removeItem('supabase.auth.token')
+      
+      // Clear all possible Supabase keys
+      const keys = Object.keys(localStorage)
+      keys.forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key)
+        }
+      })
+      
+      // Clear session storage
+      sessionStorage.clear()
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut({ scope: 'global' })
+      
+      // Remove logout flag after a delay
+      setTimeout(() => {
+        localStorage.removeItem(logoutFlag)
+      }, 1000)
     } catch (error) {
-      console.error("Logout error:", error)
+      // Even if logout fails, clear local state and storage
+      setAdmin(null)
+      setLastFetchedUserId(null)
+      setIsInitialized(false)
+      setFetchRetryCount(0)
+      
+      // Clear storage anyway
+      const keys = Object.keys(localStorage)
+      keys.forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key)
+        }
+      })
+      sessionStorage.clear()
+      localStorage.removeItem('admin_logout_in_progress')
     }
   }
 

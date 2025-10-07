@@ -143,7 +143,7 @@ export function AnalyticsDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Link href="/admin/vehicles">
                 <Button className="w-full h-20 flex flex-col items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                   <Car className="h-6 w-6" />
@@ -160,6 +160,16 @@ export function AnalyticsDashboard() {
                   <div className="text-center">
                     <div className="font-semibold">Kelola Kontak</div>
                     <div className="text-xs opacity-90">Edit info kontak & WhatsApp</div>
+                  </div>
+                </Button>
+              </Link>
+
+              <Link href="/admin/account">
+                <Button className="w-full h-20 flex flex-col items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white">
+                  <Settings className="h-6 w-6" />
+                  <div className="text-center">
+                    <div className="font-semibold">Kelola Akun</div>
+                    <div className="text-xs opacity-90">Ubah password & email</div>
                   </div>
                 </Button>
               </Link>

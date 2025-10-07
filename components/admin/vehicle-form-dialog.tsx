@@ -244,7 +244,6 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
     
     // Prevent multiple submissions
     if (loading) {
-      console.log("Form already submitting, ignoring duplicate submission")
       return
     }
     
@@ -254,7 +253,7 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
 
     // Add overall timeout for the entire form submission
     const timeoutId = setTimeout(() => {
-      console.error("Form submission timeout after 60 seconds")
+        console.error("Form submission timeout after 60 seconds")
       setLoading(false)
       setUploadingImage(false)
       setError("Form submission timeout - please check your connection and try again")
@@ -284,15 +283,13 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
 
       // Upload new image if selected
       if (selectedFile) {
-        console.log("Starting image upload...")
         setUploadingImage(true)
         try {
           const newImageUrl = await uploadImage(selectedFile)
-          console.log("Image upload successful:", newImageUrl)
           
           // If this is an edit and we're replacing an image, the old one will be deleted by updateVehicle
           if (vehicle && formData.image_url && formData.image_url !== newImageUrl) {
-            console.log("Replacing old image with new one for vehicle:", vehicle.id)
+            // Old image will be replaced
           }
           
           imageUrl = newImageUrl
@@ -303,7 +300,7 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
         setUploadingImage(false)
       }
 
-      console.log("Preparing vehicle data...")
+      // Prepare vehicle data for submission
       const vehicleData = {
         name: formData.name.trim(),
         type: formData.type,
@@ -326,14 +323,11 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
         throw new Error("Harga Unit Only terlalu besar. Maksimal 2,147,483,647")
       }
 
-      console.log("Submitting vehicle data to API...")
       // Use admin hook for proper data management
       let result
       if (vehicle) {
-        console.log("Updating existing vehicle:", vehicle.id)
         result = await updateVehicle(vehicle.id, vehicleData)
       } else {
-        console.log("Creating new vehicle")
         result = await addVehicle(vehicleData)
       }
 
@@ -342,7 +336,7 @@ export function VehicleFormDialog({ vehicle, open, onOpenChange, onSuccess }: Ve
         throw new Error(result.error || "Failed to save vehicle")
       }
 
-      console.log("Vehicle saved successfully")
+      // Success - close dialog and refresh data
       clearTimeout(timeoutId)
       onSuccess()
       handleDialogClose(false)
