@@ -1,10 +1,12 @@
 "use client"
 
+
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react"
 
+export const dynamic = "force-dynamic"; 
 export default function AuthCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
